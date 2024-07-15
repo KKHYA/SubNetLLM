@@ -35,7 +35,7 @@ eval_interval = 1000
 save_interval = 1000
 eval_iters = 100
 log_interval = 100
-devices = 2
+devices = 8
 
 # Hyperparameters
 learning_rate = 3e-5
