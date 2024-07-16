@@ -35,5 +35,4 @@ cd /sensei-fs/users/yizhouw/mingyuan/SubNetLLM
 
 echo "\n\n ==> Start runing experiments..."
 
-cd ~/yizhouw/mingyuan/SubNetLLM
 python finetune/global_subnet.py --data_dir data/alpaca --sparsity 0.5 --ratio 1.0
