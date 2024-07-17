@@ -72,23 +72,23 @@ class GetSubnet(autograd.Function):
 class GetGlobalSubnet(autograd.Function):
     @staticmethod
     def forward(ctx, scores, k):
+        split_sizes = [tensor.shape[0] for tensor in scores]
+
         # Get the supermask by sorting the scores and using the top k%
-        flat_scores = torch.cat([s.flatten() for s in scores])
-        _, idx = flat_scores.sort()
-        j = int((1 - k) * scores.numel())
+        all_scores = torch.cat(scores, dim=0)
+
+        out = all_scores.clone()
+        _, idx = all_scores.flatten().sort()
+        j = int((1 - k) * all_scores.numel())
 
         # flat_out and out access the same memory.
-        flat_out = torch.zeros_like(flat_scores)
+        flat_out = out.flatten()
+        flat_out[idx[:j]] = 0
         flat_out[idx[j:]] = 1
 
-        out = []
-        start = 0
-        for s in scores:
-            length = s.numel()
-            out.append(flat_out[start:start + length].reshape_as(s))
-            start += length
+        subnets = torch.split(out, split_sizes, dim=0)
 
-        return out
+        return subnets
 
     @staticmethod
     def backward(ctx, g):
