@@ -72,10 +72,12 @@ class GetSubnet(autograd.Function):
 class GetGlobalSubnet(autograd.Function):
     @staticmethod
     def forward(ctx, scores, k):
+        max_size = max(tensor.shape[1] for tensor in scores)
+        padded_scores = [F.pad(tensor, (0, max_size - tensor.shape[1])) for tensor in scores]
         split_sizes = [tensor.shape[0] for tensor in scores]
 
         # Get the supermask by sorting the scores and using the top k%
-        all_scores = torch.cat(scores, dim=0)
+        all_scores = torch.cat(padded_scores, dim=0)
 
         out = all_scores.clone()
         _, idx = all_scores.flatten().sort()
@@ -86,7 +88,8 @@ class GetGlobalSubnet(autograd.Function):
         flat_out[idx[:j]] = 0
         flat_out[idx[j:]] = 1
 
-        subnets = torch.split(out, split_sizes, dim=0)
+        padded_subnets = torch.split(out, split_sizes, dim=0)
+        subnets = [tensor[:, :scores[i].shape[1]] for i, tensor in enumerate(padded_subnets)]
 
         return subnets
 
